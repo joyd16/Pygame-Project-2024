@@ -5,9 +5,6 @@
 import pygame as pg
 import random
 
-# Amount of books 
-NUM_BOOKS: 10
-
 # --CONSTANTS--
 # COLOURS
 WHITE = (255, 255, 255)
@@ -21,6 +18,9 @@ GRAY = (128, 128, 128)
 WIDTH = 900  # Pixels
 HEIGHT = 600
 SCREEN_SIZE = (WIDTH, HEIGHT)
+
+# Amount of books 
+NUM_BOOKS = 10
 
 class Player(pg.sprite.Sprite):
     def __init__(self):
@@ -77,6 +77,8 @@ def start():
     done = False
     clock = pg.time.Clock()
 
+    score = 0
+
     # All sprites go in this sprite Group
     all_sprites = pg.sprite.Group()
     book_sprites = pg.sprite.Group()
@@ -85,7 +87,7 @@ def start():
     all_sprites.add(player)
 
     for _ in range(NUM_BOOKS):
-        book = Book()
+        book = Book(10)
         all_sprites.add(book)
         book_sprites.add(book)
 
@@ -103,10 +105,17 @@ def start():
         all_sprites.update()
 
 
-        # 
+        books_collided = pg.sprite.spritecollide(player, book_sprites, True)
+
+        for book in books_collided:
+            # Increase the score by 1
+            score += 1
+            print(f"Score: {score}")
+
+
         if len(book_sprites) <= 9:
             for _ in range(NUM_BOOKS):
-                book = Book()
+                book = Book(10)
                 all_sprites.add(book)
                 book_sprites.add(book)
 
@@ -141,7 +150,5 @@ def start():
 
 def main():
     start()
-
-
 if __name__ == "__main__":
     main()
