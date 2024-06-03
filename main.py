@@ -26,7 +26,10 @@ class Player(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
-        self.image = pg.image.load("./Images/Batman.webp")
+        self.image = pg.image.load("./Images/batman.webp")
+        self.rect = self.image.get_rect()
+
+        self.image = pg.transform.scale(self.image, (self.image.get_width() // 4, self.image.get_height() // 4))
         self.rect = self.image.get_rect()
 
         self.lives = 3
@@ -35,8 +38,15 @@ class Player(pg.sprite.Sprite):
 
         # Update the location
         # Controlled by the mouse
-        self.rect.centerx = pg.mouse.get_pos() [0]
-        self.rect.centery = pg.mouse.get_pos() [1]
+
+        self.rect.center = pg.mouse.get_pos()
+
+        # Keep at the bottom of the screen
+
+        if self.rect.top < HEIGHT -200:
+            self.rect.top = HEIGHT - 200
+
+        
 
 class Book(pg.sprite.Sprite):
     def __init__(self, size: int):
