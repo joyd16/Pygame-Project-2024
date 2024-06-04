@@ -19,9 +19,6 @@ WIDTH = 900  # Pixels
 HEIGHT = 600
 SCREEN_SIZE = (WIDTH, HEIGHT)
 
-# Amount of books 
-NUM_BOOKS = 10
-
 class Player(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -46,8 +43,6 @@ class Player(pg.sprite.Sprite):
         if self.rect.top < HEIGHT -200:
             self.rect.top = HEIGHT - 200
 
-        
-
 class Book(pg.sprite.Sprite):
     def __init__(self, size: int):
         super().__init__()
@@ -60,19 +55,21 @@ class Book(pg.sprite.Sprite):
 
         # Spawn book at the top of the screen
 
-        self.rect.x = random.randrange(0, WIDTH)
-        self.rect.y = random.randrange(0, HEIGHT)
+        self.rect.x = random.randrange(0, WIDTH - self.rect.width)
+        self.rect.y = HEIGHT
 
-        self.vel_y = -4
+        self.vel_y = 6
 
     def update(self):
-        self.rect.y -= self.vel_y
-
-        # If it falls off the screen, teleport back to the top of the screen
+        # Movement
+        self.rect.y += self.vel_y
 
         if self.rect.bottom >= HEIGHT + 10:
             self.rect.y = -10
-            self.rect.x = self.rect.x
+
+        # Kill if it hits the floor
+        if self.rect.bottom < 0:
+            self.kill()
 
         # And lose a life
 
@@ -87,6 +84,18 @@ def start():
     done = False
     clock = pg.time.Clock()
 
+
+    # 1) From George's Jungle Jam
+    # Falling time
+    book_fallen = 900
+    last_book_fallen = pg.time.get_ticks()
+
+    # 2) From George's Jungle Jam
+    # Difficulty
+    difficulty = 0
+
+
+    #Score
     score = 0
 
     # All sprites go in this sprite Group
@@ -95,11 +104,6 @@ def start():
 
     player = Player()
     all_sprites.add(player)
-
-    for _ in range(NUM_BOOKS):
-        book = Book(10)
-        all_sprites.add(book)
-        book_sprites.add(book)
 
     pg.display.set_caption("<WINDOW TITLE HERE>")
 
@@ -122,24 +126,31 @@ def start():
             score += 1
             print(f"Score: {score}")
 
+        # 3) From George's Jungle Jam
+        if pg.time.get_ticks() > last_book_fallen + book_fallen:
+            last_book_fallen = pg.time.get_ticks()
+            book = Book(10)
+            all_sprites.add(book)
+            book_sprites.add(book)
 
-        if len(book_sprites) <= 9:
-            for _ in range(NUM_BOOKS):
-                book = Book(10)
-                all_sprites.add(book)
-                book_sprites.add(book)
-
+        # 4) From George's Jungle Jam
         # Increase speed 
+        if score  >= difficulty:
+            book_fallen-= 50
+            difficulty += 10
 
-                # for book in book_sprites:
-                #     sprite.increase_speed()
 
-        book_collided = pg.sprite.spritecollide(player, book_sprites, False)
+    
 
-        for book in book_collided:
-            player.lives -= 0.1 
-            print(int(player.lives))
 
+
+        # CHANGE THIS TO COLLIDING WITH THE FLOOR!
+
+        # book_collided = pg.sprite.spritecollide(player, book_sprites, False)
+
+        # for book in book_collided:
+        #     player.lives -= 0.1 
+        #     print(int(player.lives))
 
 
         # --- Draw items
