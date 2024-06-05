@@ -31,17 +31,30 @@ class Player(pg.sprite.Sprite):
 
         self.lives = 3
 
+        # Starting speed
+        self.change_x = 0
+
     def update(self):
 
-        # Update the location
-        # Controlled by the mouse
-
-        self.rect.center = pg.mouse.get_pos()
-
         # Keep at the bottom of the screen
-
         if self.rect.top < HEIGHT -200:
             self.rect.top = HEIGHT - 200
+
+        # Movements 
+        self.rect.x += self.change_x
+
+    def left(self):
+        # Left arrow to go left
+        self.change_x = -10
+
+    def right(self):
+        # Right arrow to go right
+        self.change_x = 10
+
+    def stop(self):
+        # Stop moving when nothing is pressed
+        self.change_x = 0
+
 
 class Book(pg.sprite.Sprite):
     def __init__(self, size: int):
@@ -71,8 +84,16 @@ class Book(pg.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
-        # And lose a life
+class Ground(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+    
+        self.image = pg.image.load("./Images/ground.png")
+        self.rect = self.image.get_rect()
 
+        self.rect.bottom = HEIGHT
+
+        
 
 def start():
     """Environment Setup and Game Loop"""
@@ -84,26 +105,31 @@ def start():
     done = False
     clock = pg.time.Clock()
 
-
     # 1) From George's Jungle Jam
     # Falling time
-    book_fallen = 900
+    book_fallen = 1500
     last_book_fallen = pg.time.get_ticks()
 
     # 2) From George's Jungle Jam
     # Difficulty
     difficulty = 0
 
-
     #Score
     score = 0
 
     # All sprites go in this sprite Group
     all_sprites = pg.sprite.Group()
+
+    # Book sprites go in this sprite Group
     book_sprites = pg.sprite.Group()
+
+
+    ground = Ground()
+    all_sprites.add(ground)
 
     player = Player()
     all_sprites.add(player)
+
 
     pg.display.set_caption("<WINDOW TITLE HERE>")
 
@@ -114,43 +140,58 @@ def start():
             if event.type == pg.QUIT:
                 done = True
 
+            # Player movements 
+
+            
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_RIGHT:
+                    player.right()
+                if event.key == pg.K_LEFT:
+                    player.left()                
+            if event.type == pg.KEYUP:
+                player.stop()
+
         # --- Update the world state
 
         all_sprites.update()
 
-
+        # Keep track of the books collected
+        # Make them disappear from the screen
         books_collided = pg.sprite.spritecollide(player, book_sprites, True)
 
+        # For every book collected
         for book in books_collided:
             # Increase the score by 1
             score += 1
+            # Print the score
             print(f"Score: {score}")
+
 
         # 3) From George's Jungle Jam
         if pg.time.get_ticks() > last_book_fallen + book_fallen:
+
             last_book_fallen = pg.time.get_ticks()
+
             book = Book(10)
             all_sprites.add(book)
             book_sprites.add(book)
 
         # 4) From George's Jungle Jam
-        # Increase speed 
+        # Increase speed as difficulty increases
         if score  >= difficulty:
-            book_fallen-= 50
+            book_fallen-= 100
             difficulty += 10
 
-
     
+        # When a book hits the ground
+        # Make it disappear from the screen
+        book_on_ground = pg.sprite.spritecollide(ground, book_sprites, True)
 
-
-
-        # CHANGE THIS TO COLLIDING WITH THE FLOOR!
-
-        # book_collided = pg.sprite.spritecollide(player, book_sprites, False)
-
-        # for book in book_collided:
-        #     player.lives -= 0.1 
-        #     print(int(player.lives))
+        # For every book that hits the ground
+        for book in book_on_ground:
+            # Lose one life
+            player.lives -= 1
+            print(int(player.lives))
 
 
         # --- Draw items
