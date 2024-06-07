@@ -147,6 +147,9 @@ def start():
 
     pg.display.set_caption("<WINDOW TITLE HERE>")
 
+    bg_image = pg.image.load("./Images/IMG_8106.webp")
+
+
     # --Main Loop--
     while not done:
         # --- Event Listener
@@ -210,6 +213,9 @@ def start():
 
         # --- Draw items
         screen.fill(BLACK)
+
+        screen.blit(bg_image)
+
 
         # Score and lives counter
         score_image = font.render(f"SCORE: {score}", True, TEXT_ORANGE)
