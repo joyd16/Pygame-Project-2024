@@ -15,6 +15,9 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 GRAY = (128, 128, 128)
 
+TEXT_ORANGE = (237, 112, 55)
+TEXT_CREAM = (250, 245, 225)
+
 WIDTH = 900  # Pixels
 HEIGHT = 600
 SCREEN_SIZE = (WIDTH, HEIGHT)
@@ -40,8 +43,16 @@ class Player(pg.sprite.Sprite):
         if self.rect.top < HEIGHT -200:
             self.rect.top = HEIGHT - 200
 
+        # Keep within the screen
+        if self.rect.left < 0:
+            self.rect.left = 0
+            
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
+
         # Movements 
         self.rect.x += self.change_x
+    
 
     def left(self):
         # Left arrow to go left
@@ -55,7 +66,6 @@ class Player(pg.sprite.Sprite):
         # Stop moving when nothing is pressed
         self.change_x = 0
 
-
 class Book(pg.sprite.Sprite):
     def __init__(self, size: int):
         super().__init__()
@@ -67,10 +77,10 @@ class Book(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Spawn book at the top of the screen
-
         self.rect.x = random.randrange(0, WIDTH - self.rect.width)
         self.rect.y = HEIGHT
 
+        # Speed
         self.vel_y = 6
 
     def update(self):
@@ -93,12 +103,13 @@ class Ground(pg.sprite.Sprite):
 
         self.rect.bottom = HEIGHT
 
-        
-
 def start():
     """Environment Setup and Game Loop"""
 
     pg.init()
+
+    # Hide the mouse
+    pg.mouse.set_visible(False)
 
     # --Game State Variables--
     screen = pg.display.set_mode(SCREEN_SIZE)
@@ -114,8 +125,11 @@ def start():
     # Difficulty
     difficulty = 0
 
-    #Score
+    # Score
     score = 0
+
+    # Font
+    font = pg.font.Font("Pixeled.ttf", 15)
 
     # All sprites go in this sprite Group
     all_sprites = pg.sprite.Group()
@@ -141,8 +155,6 @@ def start():
                 done = True
 
             # Player movements 
-
-            
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_RIGHT:
                     player.right()
@@ -156,7 +168,6 @@ def start():
         all_sprites.update()
 
         # Keep track of the books collected
-        # Make them disappear from the screen
         books_collided = pg.sprite.spritecollide(player, book_sprites, True)
 
         # For every book collected
@@ -166,12 +177,11 @@ def start():
             # Print the score
             print(f"Score: {score}")
 
-
         # 3) From George's Jungle Jam
+        # After cooldown for book falling
         if pg.time.get_ticks() > last_book_fallen + book_fallen:
-
+            # Reset cooldown
             last_book_fallen = pg.time.get_ticks()
-
             book = Book(10)
             all_sprites.add(book)
             book_sprites.add(book)
@@ -182,10 +192,10 @@ def start():
             book_fallen-= 100
             difficulty += 10
 
-    
         # When a book hits the ground
-        # Make it disappear from the screen
         book_on_ground = pg.sprite.spritecollide(ground, book_sprites, True)
+
+            # make it not disappear and stop losing lives
 
         # For every book that hits the ground
         for book in book_on_ground:
@@ -193,13 +203,24 @@ def start():
             player.lives -= 1
             print(int(player.lives))
 
+        # If lives are all gone, end the game
+        if player.lives == 0:
+            quit()
+            # Add "Play Again" later
 
         # --- Draw items
         screen.fill(BLACK)
 
+        # Score and lives counter
+        score_image = font.render(f"SCORE: {score}", True, TEXT_ORANGE)
+        lives_image = font.render(f"LIVES: {int(player.lives)}", True, TEXT_CREAM)
+        #Blit the surface on the screen
+        screen.blit(score_image, (5, 0))
+        screen.blit(lives_image, (5, 35))
+
         # Draw all of the sprites
-        
         all_sprites.draw(screen)
+        
 
         # Update the screen with anything new
         pg.display.flip()
